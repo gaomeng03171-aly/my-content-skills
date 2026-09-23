@@ -1,5 +1,5 @@
 # Video-script generation
-
+[![Validate skills](https://github.com/gaomeng03171-aly/my-content-skills/actions/workflows/validate.yml/badge.svg?branch=main)](https://github.com/gaomeng03171-aly/my-content-skills/actions/workflows/validate.yml)
 一套面向中老年受众，用于策划、撰写、事实核验和打包视频旁白的
 Codex 技能集合。
 
