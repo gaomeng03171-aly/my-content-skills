@@ -1,15 +1,9 @@
-# Travel Content Skills
-
-A Codex Skill collection for producing standardized Chinese travel-video copy.
-
-The first skill, `travel-content-skills`, accepts three required inputs:
-
-- travel locations
-- emotional tone
-- target video duration
-
-It produces a validated `.docx` containing the creative strategy, title options,
-the complete narration, location roles, tone markers, and a duration plan.
+一套用于生成标准化中文旅游视频文案的技能集合。
+第一个技能 travel-content-skills 需要三个必填的输入参数：
+旅行地点
+情绪化的语气/带有情绪色彩的表达方式
+目标视频时长
+它生成了一份经过验证的文档 .docx ，其中包含了创意策略、标题选项、完整的故事情节、各角色的分工、语言风格说明以及时间安排。
 
 ## Repository layout
 
