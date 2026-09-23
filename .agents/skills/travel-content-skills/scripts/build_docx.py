@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and structurally check a travel video copy DOCX."""
+"""Deprecated entrypoint that delegates to build_package.py."""
 
 from __future__ import annotations
 
@@ -434,32 +434,14 @@ def _document_xml(script: dict[str, object]) -> str:
 
 
 def build_docx(script: dict[str, object], output: Path) -> None:
-    document = _document_xml(script)
-    project = script["project"]
-    delivery = script["delivery"]
-    assert isinstance(project, dict)
-    assert isinstance(delivery, dict)
-    title = f"{project['name']} 旅游视频文案"
+    from build_package import build_package
 
-    output.parent.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr("[Content_Types].xml", _content_types())
-        archive.writestr("_rels/.rels", _root_rels())
-        archive.writestr("word/document.xml", document)
-        archive.writestr("word/_rels/document.xml.rels", _document_rels())
-        archive.writestr("word/styles.xml", _styles_xml())
-        archive.writestr(
-            "docProps/core.xml",
-            _core_properties(
-                title=title,
-                date=str(delivery["date"]),
-            ),
-        )
-        archive.writestr("docProps/app.xml", _app_properties())
-
-    errors = check_docx(output)
-    if errors:
-        raise ValueError("; ".join(errors))
+    package_path = (
+        output.with_suffix(".zip")
+        if output.suffix.lower() == ".docx"
+        else output
+    )
+    build_package(script, output.parent, output_zip=package_path)
 
 
 def parse_args() -> argparse.Namespace:
@@ -471,36 +453,9 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
-    args = parse_args()
-    try:
-        if args.check:
-            errors = check_docx(args.check)
-            if errors:
-                for error in errors:
-                    print(f"ERROR: {error}", file=sys.stderr)
-                return 1
-            print(json.dumps({"status": "passed", "path": str(args.check)}, ensure_ascii=False))
-            return 0
+    from build_package import main as package_main
 
-        if not args.input or not args.output:
-            print("ERROR: --input and --output are required", file=sys.stderr)
-            return 2
-
-        script = load_json(args.input)
-        build_docx(script, args.output)
-        report = validate_script(script)
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
-        return 1
-
-    payload = {
-        "status": report["status"],
-        "warning_count": report["warning_count"],
-        "path": str(args.output.resolve()),
-        "effective_char_count": report["metrics"]["effective_char_count"],
-    }
-    print(json.dumps(payload, ensure_ascii=False, indent=2))
-    return 0
+    return package_main()
 
 
 if __name__ == "__main__":

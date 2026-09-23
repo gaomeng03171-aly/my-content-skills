@@ -29,39 +29,68 @@ class ScriptContractTests(unittest.TestCase):
     def test_effective_char_count_ignores_punctuation(self):
         self.assertEqual(MODULE.effective_char_count("山河，2026！"), 6)
 
+    def test_time_range_uses_start_and_end(self):
+        self.assertEqual(
+            MODULE.format_time_range(0, 12),
+            "00:00-00:12",
+        )
+        self.assertEqual(
+            MODULE.format_time_range(72, 90),
+            "01:12-01:30",
+        )
+
     def test_sample_script_passes(self):
         report = MODULE.validate_script(sample_script())
         self.assertEqual(report["status"], "passed")
         self.assertEqual(report["error_count"], 0)
         self.assertEqual(report["warning_count"], 0)
+        self.assertEqual(
+            report["metrics"]["segments"][0]["time_range"],
+            "00:00-00:12",
+        )
 
-    def test_missing_location_is_error(self):
+    def test_timeline_gap_is_error(self):
         script = copy.deepcopy(sample_script())
-        script["narration"]["sections"][2]["text"] = "第二站去山林。"
+        script["segments"][2]["start_seconds"] = 37
         report = MODULE.validate_script(script)
         codes = {item["code"] for item in report["issues"]}
-        self.assertIn("location-missing-from-copy", codes)
+        self.assertIn("timeline-gap-or-overlap", codes)
 
-    def test_missing_tone_marker_is_error(self):
+    def test_audience_must_include_middle_aged_and_older(self):
         script = copy.deepcopy(sample_script())
-        script["narration"]["sections"][3]["text"] = "下午到龙井村，茶山顺着坡地展开。"
+        script["project"]["audience"] = "年轻观众"
         report = MODULE.validate_script(script)
         codes = {item["code"] for item in report["issues"]}
-        self.assertIn("tone-marker-missing-from-copy", codes)
+        self.assertIn("audience-out-of-scope", codes)
 
-    def test_assigned_duration_mismatch_is_error(self):
+    def test_unverified_claim_is_error(self):
         script = copy.deepcopy(sample_script())
-        script["narration"]["sections"][0]["target_seconds"] = 1
+        script["claims"][0]["verification_status"] = "unverified"
         report = MODULE.validate_script(script)
         codes = {item["code"] for item in report["issues"]}
-        self.assertIn("assigned-duration-mismatch", codes)
+        self.assertIn("claim-not-verified", codes)
 
-    def test_duration_estimate_mismatch_is_error(self):
+    def test_high_risk_claim_needs_two_evidence_items(self):
         script = copy.deepcopy(sample_script())
-        script["project"]["duration_seconds"] = 180
+        script["claims"][0]["risk_level"] = "high"
+        script["claims"][0]["category"] = "historical"
         report = MODULE.validate_script(script)
         codes = {item["code"] for item in report["issues"]}
-        self.assertIn("estimated-duration-mismatch", codes)
+        self.assertIn("claim-high-risk-evidence-insufficient", codes)
+
+    def test_fact_marker_requires_claim_link(self):
+        script = copy.deepcopy(sample_script())
+        script["segments"][2]["claim_ids"] = []
+        report = MODULE.validate_script(script)
+        codes = {item["code"] for item in report["issues"]}
+        self.assertIn("fact-marker-without-claim", codes)
+
+    def test_personal_medical_advice_is_error(self):
+        script = copy.deepcopy(sample_script())
+        script["segments"][3]["text"] += "这段内容可以保证治好。"
+        report = MODULE.validate_script(script)
+        codes = {item["code"] for item in report["issues"]}
+        self.assertIn("forbidden-medical-legal-advice", codes)
 
 
 if __name__ == "__main__":

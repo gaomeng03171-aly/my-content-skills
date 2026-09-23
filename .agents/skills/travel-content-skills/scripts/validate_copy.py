@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate a travel video copy JSON contract and emit a quality report."""
+"""Validate a middle-aged and older audience narration contract."""
 
 from __future__ import annotations
 

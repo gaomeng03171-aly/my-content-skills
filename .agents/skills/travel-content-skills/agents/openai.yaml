@@ -1,4 +1,4 @@
 interface:
-  display_name: "旅游视频文案"
-  short_description: "按地点、情感基调和视频时长生成并校验中文旅游视频文案"
-  default_prompt: "使用 $travel-content-skills，根据我提供的地点、情感基调和视频时长生成并交付 DOCX 文案。"
+  display_name: "中老年视频旁白"
+  short_description: "策划、核验并打包面向中老年受众的中文视频旁白"
+  default_prompt: "使用 $travel-content-skills，根据主题、内容领域和目标时长，策划并核验中文视频旁白，交付可朗读正文、项目审阅文档和证据表。"
